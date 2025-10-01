@@ -120,7 +120,13 @@ class CliBase:
             if not result:
                 print("[ERROR]")
             else:
-                print(result)
+                if isinstance(result, lit):
+                    print("[")
+                    for _r in result:
+                        print(f"  {_r}")
+                    print("]")
+                else:
+                    print(result)
         except Exception as _e:
             self.__log.warning(errmsg(_e))
             return False

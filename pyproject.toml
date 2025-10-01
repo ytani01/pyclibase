@@ -62,4 +62,4 @@ module = []
 ignore_missing_imports = true
 
 [tool.uv.sources]
-pyclickutils = { path = "../pyclickutils" }
+pyclickutils = { path = "../pyclickutils", editable = true }
