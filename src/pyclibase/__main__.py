@@ -10,7 +10,11 @@ from .pyclibase import CliBase
 
 @click.command(name=__package__)
 @click.option(
-    "--history-file", type=str, default="/tmp/hist", show_default=True, help="history file"
+    "--history-file",
+    type=str,
+    default="/tmp/hist",
+    show_default=True,
+    help="history file",
 )
 @click.option(
     "--script-file",
@@ -26,7 +30,9 @@ def main(ctx, history_file, script_file, debug):
     log = get_logger(__name__, debug)
     log.debug(
         "my_name=%a, history_file=%s, script_file=%s",
-        my_name, history_file, script_file
+        my_name,
+        history_file,
+        script_file,
     )
 
     cli = CliBase(my_name, history_file, script_file=script_file, debug=debug)

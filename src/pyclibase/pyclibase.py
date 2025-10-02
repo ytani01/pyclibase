@@ -19,7 +19,11 @@ class CliBase:
     HIST_LEN = 500
 
     def __init__(
-        self, prompt_prefix: str, history_file: str, script_file=None, debug=False
+        self,
+        prompt_prefix: str,
+        history_file: str,
+        script_file=None,
+        debug=False,
     ):
         """Contractor."""
         self.__debug = debug
@@ -39,7 +43,9 @@ class CliBase:
         self.__log.debug("history_file=%a", self.history_file)
 
         if script_file:
-            self.script_file = os.path.expanduser(os.path.expandvars(script_file))
+            self.script_file = os.path.expanduser(
+                os.path.expandvars(script_file)
+            )
             self.__log.debug("script_file=%a", self.script_file)
         else:
             self.script_file = ""
