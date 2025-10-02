@@ -19,16 +19,16 @@ class CliBase:
     HIST_LEN = 500
 
     def __init__(
-        self, prompt_prefix: str, history_file: str, infile=None, debug=False
+        self, prompt_prefix: str, history_file: str, script_file=None, debug=False
     ):
         """Contractor."""
         self.__debug = debug
         self.__log = get_logger(self.__class__.__name__, self.__debug)
         self.__log.debug(
-            "prompt_prefix=%s, history_file=%s, infile=%s",
+            "prompt_prefix=%s, history_file=%s, script_file=%s",
             prompt_prefix,
             history_file,
-            infile,
+            script_file,
         )
 
         self.prompt_prefix = prompt_prefix
@@ -38,9 +38,11 @@ class CliBase:
         )
         self.__log.debug("history_file=%a", self.history_file)
 
-        if infile:
-            self.infile = os.path.expanduser(os.path.expandvars(infile))
-            self.__log.debug("infile=%a", self.infile)
+        if script_file:
+            self.script_file = os.path.expanduser(os.path.expandvars(script_file))
+            self.__log.debug("script_file=%a", self.script_file)
+        else:
+            self.script_file = ""
 
         try:
             readline.read_history_file(self.history_file)
@@ -59,6 +61,17 @@ class CliBase:
             os.remove(self.history_file)
         except Exception as _e:
             self.__log.error("%s: %s", type(_e).__name__, _e)
+
+    def main(self):
+        """Main."""
+        self.__log.debug("")
+        try:
+            if self.script_file:
+                self.run_file(self.script_file)
+            else:
+                self.loop()
+        finally:
+            self.end()
 
     def end(self):
         """End."""
@@ -150,18 +163,15 @@ class CliBase:
             print("^C")
             self.__log.debug(errmsg(_e))
 
-        finally:
-            self.end()
-
-    def run_file(self, infile=""):
+    def run_file(self, script_file=""):
         """Run command file."""
-        if not infile:
-            infile = self.infile
-        self.__log.debug("infile=%a", self.infile)
-        if not self.infile:
+        if not script_file:
+            script_file = self.script_file
+        self.__log.debug("script_file=%a", self.script_file)
+        if not script_file:
             return
 
-        with open(self.infile, "r") as f:
+        with open(script_file, "r") as f:
             for _line in f:
                 _line = _line.strip()
                 self.__log.debug("line=%a", _line)
@@ -170,4 +180,3 @@ class CliBase:
                     continue
                 else:
                     break
-        self.end()

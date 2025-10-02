@@ -213,7 +213,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = ">=8.3.0" },
-    { name = "pyclickutils", directory = "../pyclickutils" },
+    { name = "pyclickutils", editable = "../pyclickutils" },
 ]
 
 [package.metadata.requires-dev]
@@ -231,7 +231,7 @@ samples = []
 
 [[package]]
 name = "pyclickutils"
-source = { directory = "../pyclickutils" }
+source = { editable = "../pyclickutils" }
 dependencies = [
     { name = "asyncclick" },
     { name = "click" },

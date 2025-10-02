@@ -10,23 +10,24 @@ from .pyclibase import CliBase
 
 @click.command(name=__package__)
 @click.option(
-    "--script",
+    "--history-file", type=str, default="/tmp/hist", show_default=True, help="history file"
+)
+@click.option(
+    "--script-file",
     "-f",
     type=str,
     default="",
-    show_default=True,
     help="script file",
 )
 @click_common_opts(click, __version__)
-def main(ctx, script, debug):
+def main(ctx, history_file, script_file, debug):
     """CLI main."""
-    command_name = ctx.command.name
+    my_name = ctx.command.name
     log = get_logger(__name__, debug)
-    log.debug("command_name=%a", command_name)
-    log.debug("script=%s", script)
+    log.debug(
+        "my_name=%a, history_file=%s, script_file=%s",
+        my_name, history_file, script_file
+    )
 
-    cli = CliBase(command_name, "/tmp/hist", infile=script, debug=debug)
-    if script:
-        cli.run_file()
-    else:
-        cli.loop()
+    cli = CliBase(my_name, history_file, script_file=script_file, debug=debug)
+    cli.main()
