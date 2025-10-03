@@ -39,7 +39,17 @@ uv run flake8 src tests samples
 echo "# mypy"
 uv run mypy src tests samples
 '''
+depends = ["upgradelocal"]
 
 [tasks.test]
 description = "test"
 run = "uv run pytest -v tests"
+
+[tasks.install]
+description = "install editable"
+run = '''
+# Install
+uv pip install -e .
+uv run pyclibase -V
+'''
+depends = ["lint"]
