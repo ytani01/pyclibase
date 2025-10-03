@@ -1,15 +1,15 @@
 [tasks.upgradesys]
-description = "upgrade global tools"
+description = "upgrade global tools (pyclibase)"
 run = '''
 # upgrade global
-echo "# apt"
+echo "## apt"
 LANG=C sudo apt update
 LANG=C sudo apt upgrade
 LANG=C sudo apt autoremove -y
-echo "# mise"
+echo "## mise"
 mise self-update
 mise up
-echo "# uv"
+echo "## uv"
 uv tool upgrade --all
 '''
 alias = "upsys"
@@ -18,7 +18,7 @@ alias = "upsys"
 description = "upgrade in this project"
 run = '''
 # upgrade this project
-echo "# pip"
+echo "## pip"
 uv pip install -U --group dev -e .
 '''
 alias = "uplocal"
@@ -28,15 +28,15 @@ depends = ["upgradesys"]
 description = "linting"
 run = '''
 # linting
-echo "# isort"
+echo "## isort"
 uv run isort src tests samples
-echo "# ruff"
+echo "## pruff"
 uv run ruff format src tests samples
-echo "# pyright"
+echo "## pyright"
 uv run pyright src tests samples
-echo "# flake8"
+echo "## flake8"
 uv run flake8 src tests samples
-echo "# mypy"
+echo "## mypy"
 uv run mypy src tests samples
 '''
 depends = ["upgradelocal"]
@@ -44,12 +44,15 @@ depends = ["upgradelocal"]
 [tasks.test]
 description = "test"
 run = "uv run pytest -v tests"
+depends = ["lint"]
 
 [tasks.install]
 description = "install editable"
 run = '''
 # Install
+echo "## Install"
 uv pip install -e .
+echo "## version"
 uv run pyclibase -V
 '''
-depends = ["lint"]
+depends = ["test"]
