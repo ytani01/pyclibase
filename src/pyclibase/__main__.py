@@ -23,7 +23,7 @@ from .pyclibase import CliBase
     default="",
     help="script file",
 )
-@click_common_opts(click, __version__)
+@click_common_opts(__version__)
 def main(ctx, history_file, script_file, debug):
     """CLI main."""
     my_name = ctx.command.name

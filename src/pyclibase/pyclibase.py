@@ -6,7 +6,7 @@
 import os
 import readline
 
-from .my_logger import errmsg, get_logger
+from pyclickutils import errmsg, get_logger
 
 
 class CliBase:
@@ -110,7 +110,7 @@ class CliBase:
     def handle_special(self, line: str):
         """Handle special command."""
         self.__log.debug("line=%a", line)
-        self.__log.info("**WIP**: macro etc.")
+        self.__log.info("**WIP**: Special comman.")
         return
 
     def process_line(self, line: str):
