@@ -29,7 +29,7 @@ class InteractiveSession:
                 try:
                     data = os.read(self.master_fd, 1024).decode()
                     self.output += data
-                    print(f"Current output: \n{self.output}")  # Debug print
+                    print(f"Current output: \n{self.output}")
                     if pattern in self.output:
                         return True
                 except OSError:
