@@ -43,7 +43,7 @@ while True:
         key += sys.stdin.read(2)
 
     if key == '\n':  # Enter key
-        sys.stdout.write('You selected {}\n'.format(menu_items[selected_item]))
+        sys.stdout.write(f'You selected {menu_items[selected_item]}\n')
         sys.stdout.flush()
         break
     elif key == '\x1b[A':  # Up arrow

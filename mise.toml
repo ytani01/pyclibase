@@ -18,8 +18,12 @@ alias = "upsys"
 description = "upgrade in this project"
 run = '''
 # upgrade this project
-echo "## pip"
-uv pip install -U --group dev -e .
+echo "## rm uv.lock"
+rm uv.lock
+echo "## uv sync"
+uv sync
+#echo "## pip"
+#uv pip install -U --group dev -e .
 '''
 alias = "uplocal"
 depends = ["upgradesys"]
@@ -34,8 +38,6 @@ echo "## ruff"
 uv run ruff format src tests samples
 echo "## pyright"
 uv run pyright src tests samples
-echo "## flake8"
-uv run flake8 src tests samples
 echo "## mypy"
 uv run mypy src tests samples
 '''

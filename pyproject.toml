@@ -38,7 +38,10 @@ lint.select = ["E", "F", "I"]
 exclude = ["tests/data"]
 
 [tool.pyright]
+#typeCheckingMode = "strict"
 typeCheckingMode = "standard"
+reportUnusedImport = true
+exclude = ["tests/conftest.py"]
 
 [tool.pytest.ini_options]
 pythonpath = "tests"
@@ -48,18 +51,18 @@ dev = [
     "mypy>=1.17.0",
     "pytest>=8.4.1",
     "pytest-mock",
-    "ruff>=0.12.3",
     "flake8>=7.3.0",
     "isort>=6.0.1",
     "pylint>=3.3.7",
-    "pyright>=1.1.403",
+    "pyright",
+    "ruff",
 ]
 samples = [
 ]
 
 [[tool.mypy.overrides]]
 module = []
-ignore_missing_imports = true
+#ignore_missing_imports = true
 
 [tool.uv.sources]
 pyclickutils = { path = "../pyclickutils" }
