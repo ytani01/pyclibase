@@ -30,7 +30,7 @@ run = '''
 # linting
 echo "## isort"
 uv run isort src tests samples
-echo "## pruff"
+echo "## ruff"
 uv run ruff format src tests samples
 echo "## pyright"
 uv run pyright src tests samples

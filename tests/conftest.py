@@ -10,7 +10,10 @@ import pytest
 
 
 class InteractiveSession:
+    """Interactive session."""
+
     def __init__(self, master_fd, process):
+        """Constractor."""
         self.master_fd = master_fd
         self.process = process
         self.output = ""
@@ -19,51 +22,94 @@ class InteractiveSession:
         """Sends a key press to the process."""
         os.write(self.master_fd, key.encode())
 
-    def expect(self, pattern: str, timeout: int = 5) -> bool:
+    def expect(self, pattern: str | list[str], timeout: float = 5.0) -> bool:
         """Waits for a pattern to appear in the output."""
-        print()
+        if isinstance(pattern, str):
+            pattern = [pattern]
+
         start_time = time.time()
+        self.output = ""
         while time.time() - start_time < timeout:
             r, _, _ = select.select([self.master_fd], [], [], 0.1)
             if r:
                 try:
                     data = os.read(self.master_fd, 1024).decode()
                     self.output += data
-                    print(f"Current output: \n{self.output}")
-                    if pattern in self.output:
+                    # print(f"### Current output: \n{self.output}")
+                    true_count = 0
+                    matched_pattern = []
+                    for p in pattern:
+                        if p in self.output:
+                            matched_pattern.append(p)
+                            true_count += 1
+                    print(f" {true_count}/{len(pattern)} >>> {data!r}")
+                    if true_count == len(pattern):
                         return True
                 except OSError:
                     break
         return False
 
-    def get_output(self) -> str:
-        """Returns the captured output."""
-        return self.output
+    def assert_out(
+        self, e_stdout: str | list[str], e_stderr: str | list[str]
+    ):
+        """Assert output."""
+        if e_stdout:
+            print(f"## expected={e_stdout}")
+            assert self.expect(e_stdout)
+        if e_stderr:
+            print(f"## expected={e_stderr}")
+            assert self.expect(e_stderr)
 
-    def close(self):
+    def assert_in_out(self, in_data: str, out_data: str | list[str]):
+        """Assert interactive in and out."""
+        print(f"\n## in={in_data!r}")
+        self.send_key(in_data)
+        time.sleep(0.1)
+
+        print(f"### expected={out_data}")
+        assert self.expect(out_data)
+        time.sleep(0.1)
+
+    def assert_in_out_list(self, inout: list[dict]):
+        """Assert interactive in and out."""
+        for _inout in inout:
+            self.assert_in_out(_inout["in"], _inout["out"])
+
+    def close(self, terminate_flag=True, timeout_sec=3.0):
         """Terminates the process and closes the file descriptor."""
-        self.process.terminate()
-        self.process.wait()
+        ret = None
+
+        if terminate_flag:
+            print("* terminate")
+            self.process.terminate()
+        try:
+            ret = self.process.wait(timeout=timeout_sec)
+            print(f"ret={ret}")
+        except subprocess.TimeoutExpired as _e:
+            print(f"{type(_e).__name__}: {_e}")
+            print("* kill process")
+            self.process.kill()
+            ret = self.process.wait(timeout=None)
+            print(f"ret={ret}")
+
         os.close(self.master_fd)
+        return ret
 
 
 class CLITestBase:
-    """CLIテスト用のヘルパークラス。
-
-    コマンドの実行、出力のアサーションなど、CLIテストで頻繁に使用する機能を提供します。
-    """
+    """CLIテスト用のヘルパークラス。"""
 
     DEFAULT_TIMEOUT = 10
     DEFAULT_ENCODING = "utf-8"
 
     def run_command(
         self,
-        command: list[str],
+        command: str | list[str],
+        opts: str | list[str],
         input_data: Optional[str] = None,
         timeout: int = DEFAULT_TIMEOUT,
         cwd: Optional[str] = None,
         env: Optional[dict[str, str]] = None,
-        check_success: bool = True,
     ) -> subprocess.CompletedProcess:
         """コマンドを実行し、結果を返します。
 
@@ -73,7 +119,6 @@ class CLITestBase:
             timeout: コマンドのタイムアウト（秒）。
             cwd: コマンドを実行するディレクトリ。
             env: コマンドの環境変数。
-            check_success: Trueの場合、コマンドが失敗したらpytest.failを呼び出します。
 
         Returns:
             コマンドの実行結果。
@@ -82,9 +127,22 @@ class CLITestBase:
             pytest.fail: コマンドの実行に失敗した場合。
             pytest.skip: コマンドが見つからない場合。
         """
+        if isinstance(command, str):
+            command_list = command.split()
+        else:
+            command_list = command
+
+        if isinstance(opts, str):
+            command_list += opts.split()
+        else:
+            command_list += opts
+
+        command_str = " ".join(command_list)
+
         try:
+            print(f"\n\n# cmdline = {command_str!r}")
             result = subprocess.run(
-                command,
+                command_list,
                 capture_output=True,
                 text=True,
                 encoding=self.DEFAULT_ENCODING,
@@ -93,20 +151,57 @@ class CLITestBase:
                 cwd=cwd,
                 env=env,
             )
-            if check_success and result.returncode != 0:
-                pytest.fail(
-                    f"Command failed: {' '.join(command)}\n"
-                    f"Return code: {result.returncode}\n"
-                    f"Stdout: {result.stdout}\n"
-                    f"Stderr: {result.stderr}"
-                )
             return result
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as _e:
             command_str = " ".join(command)
-            # noqa: E501
-            pytest.fail(f"Command timed out after {timeout}s: {command_str}")
+            pytest.fail(f"{type(_e).__name__}: {timeout}s: {command_str}")
         except FileNotFoundError:
             pytest.skip(f"Command not found: {command[0]}")
+
+    def assert_out_str(
+        self, label: str, out_str: str, e_out: str | list[str]
+    ):
+        """Assert output."""
+        if not e_out:
+            return
+
+        print(f"```{label}\n{out_str}```")
+
+        if isinstance(e_out, str):
+            e_out = [e_out]
+
+        for _o in e_out:
+            print(f"## expect: {_o!r}")
+            assert _o in out_str
+
+    def assert_result(
+        self,
+        result: subprocess.CompletedProcess,
+        e_stdout: str | list[str],
+        e_stderr: str | list[str],
+        e_ret: int | None,
+    ):
+        """Assert result"""
+        self.assert_out_str("stdout", result.stdout, e_stdout)
+        self.assert_out_str("stderr", result.stderr, e_stderr)
+        if isinstance(e_ret, int):
+            print(f"## returncode: {result.returncode} == {e_ret}")
+            assert result.returncode == e_ret
+        else:
+            pass  # ignore
+        print()
+
+    def test_command(
+        self,
+        command: str | list[str],
+        opts: str | list[str],
+        e_stdout: str | list[str],
+        e_stderr: str | list[str],
+        e_ret: int | None,
+    ) -> None:
+        """Test command."""
+        result = self.run_command(command, opts)
+        self.assert_result(result, e_stdout, e_stderr, e_ret)
 
     def run_interactive_command(
         self, command: list[str]
@@ -121,6 +216,30 @@ class CLITestBase:
         )
         os.close(slave_fd)
         return InteractiveSession(master_fd, process)
+
+    def test_interactive(
+        self,
+        cmdline: str,
+        opts: str,
+        e_stdout: str | list[str],
+        e_stderr: str | list[str],
+        in_out: list[dict],
+        terminate_flag=True,
+        e_ret: int | None = None,
+    ) -> None:
+        """Test interactive session."""
+        if opts:
+            cmdline += " " + opts
+        print(f"\n\n# cmdline = {cmdline}")
+
+        session = self.run_interactive_command(cmdline.split())
+        session.assert_out(e_stdout, e_stderr)  # 起動直後
+        session.assert_in_out_list(in_out)  # 入出力
+        ret = session.close(terminate_flag)  # 終了
+        if isinstance(e_ret, int):
+            assert ret == e_ret
+        else:
+            pass  # ignore
 
     def assert_output_contains(
         self,
@@ -177,3 +296,4 @@ KEY_DOWN = "\x1b[B"
 KEY_RIGHT = "\x1b[C"
 KEY_LEFT = "\x1b[D"
 KEY_ENTER = "\n"
+KEY_EOF = "\x04"
