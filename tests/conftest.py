@@ -105,7 +105,7 @@ class CLITestBase:
     def run_command(
         self,
         command: str | list[str],
-        opts: str | list[str],
+        opts: str | list[str] | None = None,
         input_data: Optional[str] = None,
         timeout: int = DEFAULT_TIMEOUT,
         cwd: Optional[str] = None,
@@ -132,15 +132,17 @@ class CLITestBase:
         else:
             command_list = command
 
-        if isinstance(opts, str):
-            command_list += opts.split()
-        else:
-            command_list += opts
-
-        command_str = " ".join(command_list)
+        if opts:
+            if isinstance(opts, str):
+                command_list += opts.split()
+            else:
+                command_list += opts
+        command_str = ' '.join(command_list)
 
         try:
             print(f"\n\n# cmdline = {command_str!r}")
+            if input_data:
+                print(f"## input: {input_data!r}")
             result = subprocess.run(
                 command_list,
                 capture_output=True,
@@ -177,9 +179,9 @@ class CLITestBase:
     def assert_result(
         self,
         result: subprocess.CompletedProcess,
-        e_stdout: str | list[str],
-        e_stderr: str | list[str],
-        e_ret: int | None,
+        e_stdout: str | list[str] = "",
+        e_stderr: str | list[str] = "",
+        e_ret: int | None = None,
     ):
         """Assert result"""
         self.assert_out_str("stdout", result.stdout, e_stdout)
@@ -194,13 +196,14 @@ class CLITestBase:
     def test_command(
         self,
         command: str | list[str],
-        opts: str | list[str],
-        e_stdout: str | list[str],
-        e_stderr: str | list[str],
-        e_ret: int | None,
+        opts: str | list[str] = "",
+        input_data: Optional[str] = None,
+        e_stdout: str | list[str] = "",
+        e_stderr: str | list[str] = "",
+        e_ret: int | None = None,
     ) -> None:
         """Test command."""
-        result = self.run_command(command, opts)
+        result = self.run_command(command, opts, input_data)
         self.assert_result(result, e_stdout, e_stderr, e_ret)
 
     def run_interactive_command(

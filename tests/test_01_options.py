@@ -14,7 +14,6 @@ CMDLINE = "uv run " + CMDNAME
 
 class TestOptions:
     """基本的なコマンドのテスト。"""
-
     @pytest.mark.parametrize(
         "opts, e_stdout, e_stderr, e_ret",
         [
