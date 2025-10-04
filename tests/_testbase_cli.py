@@ -231,6 +231,7 @@ class CLITestBase:
             stdout=slave_fd,
             stderr=slave_fd,
             close_fds=True,
+            start_new_session=True,  # ** IMPORTANT **
         )
         os.close(slave_fd)
         return InteractiveSession(master_fd, process)

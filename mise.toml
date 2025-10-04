@@ -22,8 +22,10 @@ echo "## rm uv.lock"
 rm uv.lock
 echo "## uv sync"
 uv sync
-#echo "## pip"
-#uv pip install -U --group dev -e .
+echo "## pip"
+uv pip install -U --group dev -e .
+echo "## uv run pyclibase -V"
+uv run pyclibase -V
 '''
 alias = "uplocal"
 depends = ["upgradesys"]

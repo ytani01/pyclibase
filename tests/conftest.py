@@ -1,6 +1,6 @@
 # tests/conftest.py
 
-from .clitestbase import (
+from ._testbase_cli import (
     KEY_DOWN,
     KEY_ENTER,
     KEY_EOF,
