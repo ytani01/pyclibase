@@ -14,6 +14,7 @@ CMDLINE = "uv run " + CMDNAME
 
 class TestOptions:
     """基本的なコマンドのテスト。"""
+
     @pytest.mark.parametrize(
         "opts, e_stdout, e_stderr, e_ret",
         [
@@ -24,4 +25,4 @@ class TestOptions:
     )
     def test_command(self, cli_runner, opts, e_stdout, e_stderr, e_ret):
         """Test command options."""
-        cli_runner.test_command(CMDLINE, opts, e_stdout, e_stderr, e_ret)
+        cli_runner.test_command(CMDLINE, opts, "", e_stdout, e_stderr, e_ret)

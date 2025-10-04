@@ -9,6 +9,7 @@ import pytest
 
 class TestBasicCommands:
     """基本的なコマンドのテスト。"""
+
     @pytest.mark.parametrize(
         "command, expected",
         [
@@ -23,6 +24,7 @@ class TestBasicCommands:
 
 class TestAdvancedCommands:
     """入力やパイプなど、より高度な機能のテスト。"""
+
     @pytest.mark.parametrize(
         "input_name, expected",
         [

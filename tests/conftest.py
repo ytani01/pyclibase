@@ -20,12 +20,14 @@ class InteractiveSession:
 
     def send_key(self, key: str):
         """Sends a key press to the process."""
+        print(f"## key: {key!r}")
         os.write(self.master_fd, key.encode())
 
     def expect(self, pattern: str | list[str], timeout: float = 5.0) -> bool:
         """Waits for a pattern to appear in the output."""
         if isinstance(pattern, str):
             pattern = [pattern]
+        print(f"## expect: {pattern}")
 
         start_time = time.time()
         self.output = ""
@@ -137,7 +139,7 @@ class CLITestBase:
                 command_list += opts.split()
             else:
                 command_list += opts
-        command_str = ' '.join(command_list)
+        command_str = " ".join(command_list)
 
         try:
             print(f"\n\n# cmdline = {command_str!r}")
@@ -207,11 +209,25 @@ class CLITestBase:
         self.assert_result(result, e_stdout, e_stderr, e_ret)
 
     def run_interactive_command(
-        self, command: list[str]
+        self, command: str | list[str], opts: str | list[str] = ""
     ) -> "InteractiveSession":
+        if isinstance(command, str):
+            command_list = command.split()
+        else:
+            command_list = command
+
+        if opts:
+            if isinstance(opts, str):
+                command_list += opts.split()
+            else:
+                command_list += opts
+
+        command_str = " ".join(command_list)
+        print(f"\n\n# command line:  {command_str!r}")
+
         master_fd, slave_fd = pty.openpty()
         process = subprocess.Popen(
-            command,
+            command_list,
             stdin=slave_fd,
             stdout=slave_fd,
             stderr=slave_fd,
@@ -222,20 +238,30 @@ class CLITestBase:
 
     def test_interactive(
         self,
-        cmdline: str,
-        opts: str,
-        e_stdout: str | list[str],
-        e_stderr: str | list[str],
-        in_out: list[dict],
+        cmdline: str | list[str],
+        opts: str | list[str] = "",
+        e_stdout: str | list[str] = "",
+        e_stderr: str | list[str] = "",
+        in_out: list[dict] = [],
         terminate_flag=True,
         e_ret: int | None = None,
     ) -> None:
         """Test interactive session."""
-        if opts:
-            cmdline += " " + opts
-        print(f"\n\n# cmdline = {cmdline}")
+        if isinstance(cmdline, str):
+            cmdline_list = cmdline.split()
+        else:
+            cmdline_list = cmdline
 
-        session = self.run_interactive_command(cmdline.split())
+        if opts:
+            if isinstance(opts, str):
+                cmdline_list += opts.split()
+            else:
+                cmdline_list += opts
+
+        cmdline_str = " ".join(cmdline_list)
+        print(f"\n\n# cmdline = {cmdline_str}")
+
+        session = self.run_interactive_command(cmdline_list)
         session.assert_out(e_stdout, e_stderr)  # 起動直後
         session.assert_in_out_list(in_out)  # 入出力
         ret = session.close(terminate_flag)  # 終了
