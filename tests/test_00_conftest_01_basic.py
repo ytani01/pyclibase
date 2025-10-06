@@ -6,6 +6,8 @@
 #
 import pytest
 
+KEY_EOF = "\x04"
+
 
 class TestBasicCommands:
     """基本的なコマンドのテスト。"""
@@ -31,12 +33,21 @@ class TestAdvancedCommands:
             ("World\n", ["Hello World", "Hello", "World"]),
             ("Alice\n", ["Hello Alice"]),
             ("\n", "Hello"),
-            ("\x04", "Hello"),
+            (KEY_EOF, "Hello"),
         ],
     )
     def test_command_with_input(self, cli_runner, input_name, expected):
         """標準入力を使用するコマンドをテストします。"""
         cmdline = ["python3", "-c", "name = input(); print('Hello ' + name)"]
+
+        print("\n* test_command(...)")
         cli_runner.test_command(
-            cmdline, "", input_name, e_stdout=expected, e_ret=0
+            cmdline, input_data=input_name, e_stdout=expected, e_ret=0
+        )
+
+        inout = {"in": input_name, "out": expected}
+        print("* test_interactive(...)")
+        print(f"* inout={inout}")
+        cli_runner.test_interactive(
+            cmdline, in_out=inout, terminate_flag=False
         )

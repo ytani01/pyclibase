@@ -1,4 +1,3 @@
-# tests/test_interactive.py
 import os
 
 import pytest
@@ -61,21 +60,6 @@ while True:
         f.write(app_code)
 
     cmdline = ["python", "my_interactive_app.py"]
-
     cli_runner.test_interactive(cmdline, e_stdout=e_stdout, in_out=in_out)
-    # session = cli_runner.run_interactive_command(
-    #     ["python", "my_interactive_app.py"]
-    # )
-    # assert session.expect(
-    #     ["> Menu Item 1", "Menu Item 2", "Menu Item 3"]
-    # )
 
-    # session.send_key(KEY_DOWN)
-    # session.send_key(KEY_DOWN)
-    # session.send_key(KEY_ENTER)
-    # assert session.expect(["You selected ", "Menu Item 3"])
-
-    # session.close()
-
-    # Clean up the dummy app
     os.remove("my_interactive_app.py")
